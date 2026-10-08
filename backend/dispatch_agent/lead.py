@@ -62,9 +62,11 @@ def normalize_zip(value):
 
 
 def normalize_phone(value):
-    """10-digit US phone number with punctuation and a leading +1 removed, or None."""
+    """10-digit US phone number with punctuation, a leading +1 and any extension removed,
+    or None."""
     if not value:
         return None
+    value = re.sub(r"(?i)\s*(?:ext\.?|extension|x|#)\s*\d+\s*$", "", value)
     digits = re.sub(r"\D", "", value)
     if len(digits) == 11 and digits.startswith("1"):
         digits = digits[1:]
