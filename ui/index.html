@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dispatch Agent</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Dispatch Agent</h1>
+        <button id="new-chat" type="button">New chat</button>
+      </header>
+      <ol id="messages" aria-live="polite"></ol>
+      <form id="composer">
+        <input id="input" autocomplete="off" maxlength="2000" placeholder="Describe the problem…" disabled />
+        <button type="submit" disabled>Send</button>
+      </form>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

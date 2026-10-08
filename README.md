@@ -39,3 +39,13 @@ uv run python scripts/get_providers.py     # Google Places; needs GOOGLE_PLACES_
 uv run python scripts/get_zip_centroids.py # Census ZIP centroids
 uv run python scripts/load_providers.py    # rebuilds data/dispatch.db
 ```
+
+## UI
+
+A single static page in `ui/` (no build step) that chats with the API. With the API running on port 8000:
+
+```sh
+python3 -m http.server 5173 -d ui
+```
+
+Then open http://localhost:5173. The API only accepts browser calls from that origin (`UI_ORIGINS` in `backend/dispatch_agent/config.py`).

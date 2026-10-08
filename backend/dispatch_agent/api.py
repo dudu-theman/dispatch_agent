@@ -11,9 +11,10 @@ from typing import Annotated, Literal
 
 import anthropic
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, StringConstraints
 
-from dispatch_agent.config import MAX_MESSAGE_CHARS
+from dispatch_agent.config import MAX_MESSAGE_CHARS, UI_ORIGINS
 from dispatch_agent.conversation import (
     GREETING,
     Conversation,
@@ -26,6 +27,9 @@ from dispatch_agent.lead import RequiredField
 from dispatch_agent.updater import load_categories
 
 app = FastAPI(title="Dispatch Agent")
+app.add_middleware(
+    CORSMiddleware, allow_origins=UI_ORIGINS, allow_methods=["POST"], allow_headers=["Content-Type"]
+)
 conversations: dict[str, Conversation] = {}
 
 

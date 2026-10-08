@@ -59,3 +59,16 @@ def test_invalid_messages_are_422(http, message):
     use_llm(NEEDS_ZIP)
     url = f"/conversations/{start(http)['conversation_id']}/messages"
     assert http.post(url, json={"message": message}).status_code == 422
+
+
+def test_ui_origin_may_call_the_api(http):
+    response = http.options(
+        "/conversations",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
