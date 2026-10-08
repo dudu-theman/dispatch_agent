@@ -8,7 +8,7 @@ A homeowner describes a problem; the agent keeps a lead state, asks one question
 
 The backend optimizes two outcomes: **conversion** (conversations that end in a dispatchable lead) and **lead quality** (a provider would accept and act on it). Scope is the API and data layer only; no frontend.
 
-- **Stack:** Python, FastAPI, SQLite, Anthropic SDK (Claude with tool use for structured output).
+- **Stack:** Python, FastAPI, SQLite, Anthropic SDK (Claude with structured outputs).
 - **Turn loop:** the LLM updates an in-memory lead state each turn; plain code decides whether the lead is complete. If not, the agent asks one question. If so, it matches and ranks providers.
 - **Dispatchable lead:** service category (confident), ZIP code, problem summary, urgency, contact name and phone.
 - **Provider data:** real Chicagoland businesses, loaded offline into SQLite. Schema: [2026-10-08_database_schemas.md](2026-10-08_database_schemas.md).
@@ -49,7 +49,7 @@ POST /conversations/{id}/messages
 |---|---|---|
 | API | Code | `POST /conversations` starts a lead. `POST /conversations/{id}/messages` runs one turn and returns either `{type: "question"}` or `{type: "lead"}`. `GET /leads/{id}` returns the lead. |
 | Lead store | Code | In-memory dict of conversation id → lead state + message history. Lost on restart; fine for v1. |
-| State updater | LLM | One Claude tool-use call per turn. Input: current state, history, new message. Output: updated fields (problem summary, category + confidence, alternate category, urgency, ZIP/address, contact) and a draft next question. The problem summary carries the specifics (what's wrong, which equipment, where, since when); there is no separate details field. |
+| State updater | LLM | One Claude call per turn with structured output. Input: current state, history, new message. Output: the full updated state (problem summary, category + confidence, alternate category, urgency, ZIP/address, contact) and a draft next question. The problem summary carries the specifics (what's wrong, which equipment, where, since when); there is no separate details field. |
 | Sufficiency check | Code | Fixed list of required fields; returns them missing in priority order. Low category confidence counts as missing. Deterministic and unit-testable. |
 | Question selection | Code + LLM | Uses the LLM's draft question if it targets the top missing field. Order: clarify category → ZIP → urgency → contact last (asking for a phone early hurts conversion). |
 | Safety flag | LLM | Hazards (gas smell, sparking, active flooding near panels) set `safety_alert`; the response leads with safety guidance before any question. |
