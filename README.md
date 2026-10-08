@@ -11,6 +11,24 @@ uv run pytest
 uv run ruff check . && uv run ruff format --check .
 ```
 
+### Running the API
+
+```sh
+cd backend
+export ANTHROPIC_API_KEY=...
+uv run uvicorn dispatch_agent.api:app --reload
+```
+
+Interactive docs are at http://localhost:8000/docs. A conversation:
+
+```sh
+curl -X POST localhost:8000/conversations
+# {"conversation_id": "<id>", "message": "Hi! What's going on at your home ..."}
+curl -X POST localhost:8000/conversations/<id>/messages \
+  -H 'Content-Type: application/json' -d '{"message": "My kitchen sink is clogged"}'
+# {"type": "question", ...} until the lead is complete, then {"type": "lead", ...}
+```
+
 ### Rebuilding the database
 
 `backend/data/dispatch.db` is committed. To rebuild it from source data:

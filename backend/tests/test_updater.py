@@ -1,9 +1,7 @@
-import json
-from types import SimpleNamespace
-
 import anthropic
 import httpx2
 import pytest
+from fakes import fake_client
 
 from dispatch_agent.lead import Confidence, LeadState, RequiredField, Urgency
 from dispatch_agent.updater import (
@@ -33,26 +31,6 @@ OUTPUT = {
     "next_question": "How soon do you need someone out?",
     "question_field": "urgency",
 }
-
-
-class FakeMessages:
-    def __init__(self, response=None, error=None):
-        self.response, self.error, self.calls = response, error, []
-
-    def create(self, **kwargs):
-        self.calls.append(kwargs)
-        if self.error:
-            raise self.error
-        return self.response
-
-
-def fake_client(output=None, stop_reason="end_turn", text=None, error=None):
-    text = json.dumps(output) if text is None else text
-    response = SimpleNamespace(
-        stop_reason=stop_reason, content=[SimpleNamespace(type="text", text=text)]
-    )
-    messages = FakeMessages(response, error)
-    return SimpleNamespace(beta=SimpleNamespace(messages=messages)), messages
 
 
 def test_load_categories_reads_the_database(conn):

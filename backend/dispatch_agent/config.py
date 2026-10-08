@@ -22,3 +22,7 @@ LLM_MODEL = "claude-sonnet-5-5"
 # Each turn is a small extraction and latency matters in a chat, so keep effort low.
 LLM_EFFORT = "low"
 LLM_MAX_TOKENS = 16000
+
+# API
+# Longest homeowner message accepted, to bound the cost of one LLM turn.
+MAX_MESSAGE_CHARS = 2000
