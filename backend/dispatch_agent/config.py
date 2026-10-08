@@ -26,3 +26,5 @@ LLM_MAX_TOKENS = 16000
 # API
 # Longest homeowner message accepted, to bound the cost of one LLM turn.
 MAX_MESSAGE_CHARS = 2000
+# Browser origins allowed to call the API (the static UI in ui/).
+UI_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
