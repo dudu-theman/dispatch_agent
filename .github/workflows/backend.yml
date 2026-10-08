@@ -1,0 +1,22 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      # Exit code 5 means no tests were collected; allow it until PR 1 adds tests.
+      - run: uv run pytest || [ $? -eq 5 ]
