@@ -47,11 +47,11 @@ POST /conversations/{id}/messages
 
 | Component | Type | Responsibility |
 |---|---|---|
-| API | Code | `POST /conversations` starts a lead. `POST /conversations/{id}/messages` runs one turn and returns either `{type: "question"}` or `{type: "lead"}`. `GET /leads/{id}` returns the lead. |
-| Lead store | Code | In-memory dict of conversation id → lead state + message history. Lost on restart; fine for v1. |
+| API | Code | `POST /conversations` starts a conversation and returns its id and a greeting. `POST /conversations/{id}/messages` runs one turn and returns either `{type: "question"}` or `{type: "lead"}`; once a lead is returned the conversation is closed (409). No auth in v1: the random conversation id is the only credential, so there is no endpoint to read a lead back (it holds contact details). |
+| Lead store | Code | In-memory dict of conversation id → lead state + message history, with a per-conversation lock so concurrent messages can't overwrite each other. Lost on restart; fine for v1. |
 | State updater | LLM | One Claude call per turn with structured output. Input: current state, history, new message. Output: the full updated state (problem summary, category + confidence, alternate category, urgency, ZIP/address, contact) and a draft next question. The problem summary carries the specifics (what's wrong, which equipment, where, since when); there is no separate details field. |
 | Sufficiency check | Code | Fixed list of required fields; returns them missing in priority order. Low category confidence counts as missing. Deterministic and unit-testable. |
-| Question selection | Code + LLM | Uses the LLM's draft question if it targets the top missing field. Order: clarify category → ZIP → urgency → contact last (asking for a phone early hurts conversion). |
+| Question selection | Code + LLM | Uses the LLM's draft question if it targets the top missing field, else a canned question for that field. A ZIP not in the centroid table is cleared and asked for again. Order: clarify category → ZIP → urgency → contact last (asking for a phone early hurts conversion). |
 | Safety flag | LLM | Hazards (gas smell, sparking, active flooding near panels) set `safety_alert`; the response leads with safety guidance before any question. |
 | Geocoder | Code | ZIP → lat/lng from an offline ZIP centroid table (Census ZCTA gazetteer); no API dependency at request time. |
 | Provider matcher | Code | Category → `provider_services` → `providers`; bounding-box prefilter in SQL, then haversine distance within a radius (default 25 mi). |
