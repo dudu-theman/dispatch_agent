@@ -58,10 +58,3 @@ POST /conversations/{id}/messages
 | Ranker | Code | Score from rating and review count only (Bayesian-adjusted, so 4.9 from 8 reviews doesn't beat 4.7 from 400). Distance is a filter, not a score. Returns top 3. |
 | Lead builder | Code | Assembles the dispatchable lead: customer contact, issue summary, category, urgency, location, matched providers. |
 | Provider ingest | Script (offline) | Google Places Text Search per category for the local area; upserts `providers` and `provider_services`. |
-
-## Open questions
-
-- Google Places API key availability; fallback is a smaller hand-verified set.
-- Lead fan-out: dispatch to 1 provider or the top 3.
-- Turn cap: after how many turns to accept a partial lead rather than lose the user.
-- Persisting leads (a `leads` table) once leads need to survive restarts or be dispatched.
