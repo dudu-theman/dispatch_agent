@@ -10,3 +10,9 @@ TOP_N = 3
 # Median review count among eligible providers is ~40, so 50 keeps a 4.9 from 15
 # reviews below a 4.7 from 400.
 PRIOR_WEIGHT = 50
+
+# Lead completeness
+# Lowest category confidence ("low", "medium", "high") that counts as known. Below it,
+# the agent asks a clarifying question (e.g. "water in the basement": plumbing or
+# waterproofing?).
+MIN_CATEGORY_CONFIDENCE = "high"
