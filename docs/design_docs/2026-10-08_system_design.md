@@ -49,9 +49,9 @@ POST /conversations/{id}/messages
 |---|---|---|
 | API | Code | `POST /conversations` starts a lead. `POST /conversations/{id}/messages` runs one turn and returns either `{type: "question"}` or `{type: "lead"}`. `GET /leads/{id}` returns the lead. |
 | Lead store | Code | In-memory dict of conversation id → lead state + message history. Lost on restart; fine for v1. |
-| State updater | LLM | One Claude tool-use call per turn. Input: current state, history, new message. Output: updated fields (problem summary, category + confidence, alternate category, urgency, ZIP/address, contact, details) and a draft next question. |
+| State updater | LLM | One Claude tool-use call per turn. Input: current state, history, new message. Output: updated fields (problem summary, category + confidence, alternate category, urgency, ZIP/address, contact) and a draft next question. The problem summary carries the specifics (what's wrong, which equipment, where, since when); there is no separate details field. |
 | Sufficiency check | Code | Fixed list of required fields; returns them missing in priority order. Low category confidence counts as missing. Deterministic and unit-testable. |
-| Question selection | Code + LLM | Uses the LLM's draft question if it targets the top missing field. Order: clarify category → ZIP → urgency → details → contact last (asking for a phone early hurts conversion). |
+| Question selection | Code + LLM | Uses the LLM's draft question if it targets the top missing field. Order: clarify category → ZIP → urgency → contact last (asking for a phone early hurts conversion). |
 | Safety flag | LLM | Hazards (gas smell, sparking, active flooding near panels) set `safety_alert`; the response leads with safety guidance before any question. |
 | Geocoder | Code | ZIP → lat/lng from an offline ZIP centroid table (Census ZCTA gazetteer); no API dependency at request time. |
 | Provider matcher | Code | Category → `provider_services` → `providers`; bounding-box prefilter in SQL, then haversine distance within a radius (default 25 mi). |
