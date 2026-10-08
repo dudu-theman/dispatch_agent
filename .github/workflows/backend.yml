@@ -18,5 +18,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
       # Exit code 5 means no tests were collected; allow it until PR 1 adds tests.
       - run: uv run pytest || [ $? -eq 5 ]

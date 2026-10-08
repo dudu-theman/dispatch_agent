@@ -75,14 +75,22 @@ CATEGORY_MERGES = {"gutters": "roofing"}
 GENERIC_TYPES = {"point_of_interest", "establishment", "service"}
 TRADE_TYPES = {"general_contractor", "roofing_contractor", "electrician", "plumber", "painter"}
 UNRELATED_TYPES = {
-    "car_repair", "car_dealer", "truck_dealer", "insurance_agency", "lawyer",
-    "educational_institution", "university", "real_estate_agency",
+    "car_repair",
+    "car_dealer",
+    "truck_dealer",
+    "insurance_agency",
+    "lawyer",
+    "educational_institution",
+    "university",
+    "real_estate_agency",
 }
 SERVICE_NAME = re.compile(
     r"repair|service|install|restoration|exterminat|pest|wildlife|mold|cleaning|heating (&|and) (air|cooling)",
     re.IGNORECASE,
 )
-SUPPLY_NAME = re.compile(r"suppl|wholesal|distribut|parts|local \d|academy|adjust|claims", re.IGNORECASE)
+SUPPLY_NAME = re.compile(
+    r"suppl|wholesal|distribut|parts|local \d|academy|adjust|claims", re.IGNORECASE
+)
 
 
 def is_service_business(place):
@@ -131,8 +139,19 @@ def load(db_path, providers):
             """INSERT INTO providers (name, phone, website, address, city, state, zip,
                                       latitude, longitude, rating, review_count)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (p["name"], p["phone"], p["website"], p["address"], p["city"], p["state"], p["zip"],
-             p["latitude"], p["longitude"], p["rating"], p["review_count"]),
+            (
+                p["name"],
+                p["phone"],
+                p["website"],
+                p["address"],
+                p["city"],
+                p["state"],
+                p["zip"],
+                p["latitude"],
+                p["longitude"],
+                p["rating"],
+                p["review_count"],
+            ),
         )
         conn.executemany(
             "INSERT INTO provider_services (provider_id, category_id) VALUES (?, ?)",
@@ -144,7 +163,9 @@ def load(db_path, providers):
 
 def main():
     parser = argparse.ArgumentParser(description="Clean raw Places data and load into SQLite.")
-    parser.add_argument("--raw", type=Path, default=ROOT / "data" / "raw" / "places_chicagoland.json")
+    parser.add_argument(
+        "--raw", type=Path, default=ROOT / "data" / "raw" / "places_chicagoland.json"
+    )
     parser.add_argument("--db", type=Path, default=ROOT / "data" / "dispatch.db")
     args = parser.parse_args()
 
