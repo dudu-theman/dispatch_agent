@@ -20,7 +20,17 @@ uv run uvicorn dispatch_agent.api:app --reload
 
 Check it: `curl localhost:8000/health` returns `{"status":"ok"}`. Interactive API docs are at http://localhost:8000/docs.
 
-The provider database (`backend/data/dispatch.db`) is committed, so there's nothing to load. To rebuild it, see "Rebuilding the database" in the README.
+To try a conversation without the UI:
+
+```sh
+curl -X POST localhost:8000/conversations
+# {"conversation_id": "<id>", "message": "Hi! What's going on at your home ..."}
+curl -X POST localhost:8000/conversations/<id>/messages \
+  -H 'Content-Type: application/json' -d '{"message": "My kitchen sink is clogged in 60614"}'
+# {"type": "question", ...} until the lead is complete, then {"type": "lead", ...}
+```
+
+The provider database (`backend/data/dispatch.db`) is committed, so there's nothing to load. To rebuild it, see [Rebuilding the database](#rebuilding-the-database).
 
 ## 2. Frontend (port 5173)
 
@@ -44,6 +54,19 @@ uv run ruff check . && uv run ruff format --check .
 ```
 
 CI (`.github/workflows/backend.yml`) runs the fast suite and lint on every PR.
+
+## Rebuilding the database
+
+To rebuild `backend/data/dispatch.db` from source data:
+
+```sh
+cd backend
+uv run python scripts/get_providers.py     # Google Places; needs GOOGLE_PLACES_API_KEY in backend/.env
+uv run python scripts/get_zip_centroids.py # Census ZIP centroids
+uv run python scripts/load_providers.py    # rebuilds data/dispatch.db
+```
+
+To cover a different area, pass a bounding box to `get_providers.py` (`--south --west --north --east`) and rebuild.
 
 ## Troubleshooting
 
