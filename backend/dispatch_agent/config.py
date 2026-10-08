@@ -16,3 +16,9 @@ PRIOR_WEIGHT = 50
 # the agent asks a clarifying question (e.g. "water in the basement": plumbing or
 # waterproofing?).
 MIN_CATEGORY_CONFIDENCE = "high"
+
+# LLM state updater
+LLM_MODEL = "claude-sonnet-5-5"
+# Each turn is a small extraction and latency matters in a chat, so keep effort low.
+LLM_EFFORT = "low"
+LLM_MAX_TOKENS = 16000
