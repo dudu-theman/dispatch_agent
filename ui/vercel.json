@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "test -n \"$API_URL\" && printf 'window.API_URL = \"%s\";\\n' \"$API_URL\" > config.js",
+  "outputDirectory": "."
+}

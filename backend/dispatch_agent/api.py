@@ -64,6 +64,12 @@ class Turn(BaseModel):
     lead: Lead | None = None  # set when type is "lead"
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    """Liveness check for the host's health probe."""
+    return {"status": "ok"}
+
+
 @app.post("/conversations", status_code=status.HTTP_201_CREATED)
 def start_conversation() -> Started:
     conversation_id = str(uuid.uuid4())
