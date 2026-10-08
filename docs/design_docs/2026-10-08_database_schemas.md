@@ -2,7 +2,7 @@
 
 _2026-10-08_
 
-SQLite. Three tables: `providers`, `service_categories`, and the `provider_services` link between them. Lead state is held in memory for v1, not in the database. See [2026-10-08_system_design.md](2026-10-08_system_design.md).
+SQLite. Three provider tables (`providers`, `service_categories`, and the `provider_services` link between them) plus `zip_centroids` for geocoding. Lead state is held in memory for v1, not in the database. See [2026-10-08_system_design.md](2026-10-08_system_design.md).
 
 Postgres types from the original sketch map to SQLite as: `SERIAL PRIMARY KEY` → `INTEGER PRIMARY KEY`, `DOUBLE PRECISION` / `DECIMAL(2,1)` → `REAL`.
 
@@ -61,5 +61,17 @@ CREATE TABLE provider_services (
     provider_id INTEGER NOT NULL REFERENCES providers (id),
     category_id INTEGER NOT NULL REFERENCES service_categories (id),
     PRIMARY KEY (provider_id, category_id)
+);
+```
+
+## zip_centroids
+
+ZIP code → center point, from the Census ZCTA Gazetteer file (ZCTAs are the Census Bureau's approximations of ZIP code areas). Downloaded by `scripts/get_zip_centroids.py`, loaded by `scripts/load_providers.py`. All ~33.8k US ZCTAs are kept so search can tell an invalid ZIP from a valid one with no providers nearby. PO-box-only ZIPs have no ZCTA and are treated as unknown.
+
+```sql
+CREATE TABLE zip_centroids (
+    zip       TEXT PRIMARY KEY,
+    latitude  REAL NOT NULL,
+    longitude REAL NOT NULL
 );
 ```

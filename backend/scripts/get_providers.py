@@ -183,8 +183,7 @@ def summarize(providers, categories, capped_tiles):
     print(f"\n{'category':<26} {'providers':>9} {'rated>=10':>9} {'capped tiles':>12}")
     for cat in categories:
         rated = sum(
-            cat in p["categories"] and (p["review_count"] or 0) >= 10
-            for p in providers.values()
+            cat in p["categories"] and (p["review_count"] or 0) >= 10 for p in providers.values()
         )
         print(f"{cat:<26} {counts[cat]:>9} {rated:>9} {capped_tiles[cat]:>12}")
 
@@ -235,8 +234,10 @@ def main():
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(list(providers.values()), indent=2))
-    print(f"\nWrote {len(providers)} providers to {args.out} "
-          f"({client.calls} API calls, {time.time() - start:.0f}s)")
+    print(
+        f"\nWrote {len(providers)} providers to {args.out} "
+        f"({client.calls} API calls, {time.time() - start:.0f}s)"
+    )
     summarize(providers, categories, capped_tiles)
 
 

@@ -1,7 +1,9 @@
 """Clean raw Google Places results and load them into SQLite.
 
 Reads data/raw/places_chicagoland.json (from get_providers.py), applies the
-cleaning rules below, and rebuilds data/dispatch.db from scratch.
+cleaning rules below, and rebuilds data/dispatch.db from scratch. Also loads
+ZIP code center points from data/raw/zcta_gazetteer.txt (from
+get_zip_centroids.py) so provider search can geocode a ZIP offline.
 
 Cleaning:
   - Drop non-service businesses: any Google type outside the generic/trade set,
@@ -21,6 +23,7 @@ Usage:
 """
 
 import argparse
+import csv
 import json
 import re
 import sqlite3
@@ -56,6 +59,12 @@ CREATE TABLE provider_services (
     category_id INTEGER NOT NULL REFERENCES service_categories (id),
     PRIMARY KEY (provider_id, category_id)
 );
+
+CREATE TABLE zip_centroids (
+    zip       TEXT PRIMARY KEY,
+    latitude  REAL NOT NULL,
+    longitude REAL NOT NULL
+);
 """
 
 CATEGORIES = {
@@ -75,14 +84,22 @@ CATEGORY_MERGES = {"gutters": "roofing"}
 GENERIC_TYPES = {"point_of_interest", "establishment", "service"}
 TRADE_TYPES = {"general_contractor", "roofing_contractor", "electrician", "plumber", "painter"}
 UNRELATED_TYPES = {
-    "car_repair", "car_dealer", "truck_dealer", "insurance_agency", "lawyer",
-    "educational_institution", "university", "real_estate_agency",
+    "car_repair",
+    "car_dealer",
+    "truck_dealer",
+    "insurance_agency",
+    "lawyer",
+    "educational_institution",
+    "university",
+    "real_estate_agency",
 }
 SERVICE_NAME = re.compile(
     r"repair|service|install|restoration|exterminat|pest|wildlife|mold|cleaning|heating (&|and) (air|cooling)",
     re.IGNORECASE,
 )
-SUPPLY_NAME = re.compile(r"suppl|wholesal|distribut|parts|local \d|academy|adjust|claims", re.IGNORECASE)
+SUPPLY_NAME = re.compile(
+    r"suppl|wholesal|distribut|parts|local \d|academy|adjust|claims", re.IGNORECASE
+)
 
 
 def is_service_business(place):
@@ -131,8 +148,19 @@ def load(db_path, providers):
             """INSERT INTO providers (name, phone, website, address, city, state, zip,
                                       latitude, longitude, rating, review_count)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (p["name"], p["phone"], p["website"], p["address"], p["city"], p["state"], p["zip"],
-             p["latitude"], p["longitude"], p["rating"], p["review_count"]),
+            (
+                p["name"],
+                p["phone"],
+                p["website"],
+                p["address"],
+                p["city"],
+                p["state"],
+                p["zip"],
+                p["latitude"],
+                p["longitude"],
+                p["rating"],
+                p["review_count"],
+            ),
         )
         conn.executemany(
             "INSERT INTO provider_services (provider_id, category_id) VALUES (?, ?)",
@@ -142,20 +170,36 @@ def load(db_path, providers):
     return conn
 
 
+def load_zip_centroids(conn, gazetteer_path):
+    with gazetteer_path.open(newline="") as f:
+        rows = [
+            (r["GEOID"], float(r["INTPTLAT"]), float(r["INTPTLONG"]))
+            for r in csv.DictReader(f, delimiter="|")
+        ]
+    conn.executemany("INSERT INTO zip_centroids (zip, latitude, longitude) VALUES (?, ?, ?)", rows)
+    conn.commit()
+    return len(rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Clean raw Places data and load into SQLite.")
-    parser.add_argument("--raw", type=Path, default=ROOT / "data" / "raw" / "places_chicagoland.json")
+    parser.add_argument(
+        "--raw", type=Path, default=ROOT / "data" / "raw" / "places_chicagoland.json"
+    )
+    parser.add_argument("--zcta", type=Path, default=ROOT / "data" / "raw" / "zcta_gazetteer.txt")
     parser.add_argument("--db", type=Path, default=ROOT / "data" / "dispatch.db")
     args = parser.parse_args()
 
     raw = json.loads(args.raw.read_text())
     providers, dropped = clean(raw)
     conn = load(args.db, providers)
+    zip_count = load_zip_centroids(conn, args.zcta)
 
     print(f"Raw providers: {len(raw)}")
     for reason, n in dropped.most_common():
         print(f"  dropped ({reason}): {n}")
-    print(f"Loaded providers: {len(providers)} into {args.db}\n")
+    print(f"Loaded providers: {len(providers)} into {args.db}")
+    print(f"Loaded ZIP centroids: {zip_count}\n")
 
     rows = conn.execute(
         """SELECT c.name, COUNT(*), SUM(p.review_count >= 10)
