@@ -1,0 +1,14 @@
+# Railway config as code for the API service. Railway doesn't resolve this file relative
+# to the service's Root Directory, so set the service's config path to /backend/railway.toml.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["/backend/**"]
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+# Conversations are in memory, so more than one replica would split them.
+numReplicas = 1

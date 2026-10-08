@@ -1,7 +1,7 @@
 // Minimal chat client for the Dispatch Agent API. The conversation id from
 // POST /conversations is the only session state; it lives in memory, so a reload
 // or "New chat" starts over.
-const API_URL = "http://localhost:8000";
+const API_URL = window.API_URL || "http://localhost:8000";
 
 const messages = document.getElementById("messages");
 const form = document.getElementById("composer");

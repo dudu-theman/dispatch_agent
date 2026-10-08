@@ -72,3 +72,7 @@ def test_ui_origin_may_call_the_api(http):
     )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_health(http):
+    assert http.get("/health").json() == {"status": "ok"}

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "dispatch.db"
@@ -26,5 +27,6 @@ LLM_MAX_TOKENS = 16000
 # API
 # Longest homeowner message accepted, to bound the cost of one LLM turn.
 MAX_MESSAGE_CHARS = 2000
-# Browser origins allowed to call the API (the static UI in ui/).
-UI_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+# Browser origins allowed to call the API (the static UI in ui/). Comma-separated in the
+# environment, e.g. UI_ORIGINS=https://dispatch-agent.vercel.app in production.
+UI_ORIGINS = os.environ.get("UI_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
