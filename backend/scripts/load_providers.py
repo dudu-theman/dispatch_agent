@@ -14,6 +14,8 @@ Cleaning:
     name says supply. Clearly unrelated types are always dropped.
   - Drop providers with no phone number (a lead must be able to reach them).
   - Drop providers outside Illinois.
+  - Drop places listed in data/excluded_places.json: listings found to be fake
+    or lead-gen fronts when their websites were audited.
   - Merge the gutters category into roofing.
 
 Low-review listings are kept; the ranker applies a minimum review count.
@@ -116,11 +118,13 @@ def is_service_business(place):
     return non_service == {"supplier"} or bool(SERVICE_NAME.search(name))
 
 
-def clean(raw):
+def clean(raw, excluded=frozenset()):
     dropped = Counter()
     kept = []
     for p in raw:
-        if not is_service_business(p):
+        if p["place_id"] in excluded:
+            dropped["excluded as fake"] += 1
+        elif not is_service_business(p):
             dropped["non-service business"] += 1
         elif not p["phone"]:
             dropped["no phone"] += 1
@@ -187,11 +191,13 @@ def main():
         "--raw", type=Path, default=ROOT / "data" / "raw" / "places_chicagoland.json"
     )
     parser.add_argument("--zcta", type=Path, default=ROOT / "data" / "raw" / "zcta_gazetteer.txt")
+    parser.add_argument("--excluded", type=Path, default=ROOT / "data" / "excluded_places.json")
     parser.add_argument("--db", type=Path, default=ROOT / "data" / "dispatch.db")
     args = parser.parse_args()
 
     raw = json.loads(args.raw.read_text())
-    providers, dropped = clean(raw)
+    excluded = set(json.loads(args.excluded.read_text()))
+    providers, dropped = clean(raw, excluded)
     conn = load(args.db, providers)
     zip_count = load_zip_centroids(conn, args.zcta)
 
